@@ -1,15 +1,9 @@
 .featured-posts-widget-thumbnail-left img {
   float: left;
-}
-
-.featured-posts-widget-thumbnail-left a {
-  padding-left: 5px;
+  padding-right: 5px;
 }
 
 .featured-posts-widget-thumbnail-right img {
   float: right;
-}
-
-.featured-posts-widget-thumbnail-right a {
-  padding-right: 5px;
+  padding-left: 5px;
 }

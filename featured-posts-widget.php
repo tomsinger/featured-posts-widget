@@ -152,7 +152,7 @@ class featured_posts_widget extends WP_Widget {
 			while( $query->have_posts() ) {
 				$query->the_post();
 				$out .= '<li>';
-				if( ('above' == $show_thumbnail || 'left' == $show_thumbnail) && has_post_thumbnail( get_the_ID() ) ) {
+				if( ('above' == $show_thumbnail || 'left' == $show_thumbnail || 'right' == $show_thumbnail) && has_post_thumbnail( get_the_ID() ) ) {
 					$out .= '<a href="' . get_permalink() . '">' . get_the_post_thumbnail( get_the_ID(), "featured-posts-widget-thumbnail" ) . '</a>';
 				}
 				if ('above' == $show_thumbnail) {
@@ -162,7 +162,7 @@ class featured_posts_widget extends WP_Widget {
 				if ('below' == $show_thumbnail) {
  					$out .= '<br />';
 				}
-				if( ('below' == $show_thumbnail || 'right' == $show_thumbnail) && has_post_thumbnail( get_the_ID() ) ) {
+				if( ('below' == $show_thumbnail) && has_post_thumbnail( get_the_ID() ) ) {
 					$out .= '<a href="' . get_permalink() . '">' . get_the_post_thumbnail( get_the_ID(), "featured-posts-widget-thumbnail" ) . '</a>';
 				}
 				$out .= '</li>';
