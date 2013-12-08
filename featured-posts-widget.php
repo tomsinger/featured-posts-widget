@@ -4,7 +4,7 @@ Plugin Name: Featured Posts Widget
 Plugin URI: http://www.89pies.com/featured-posts-widget
 Description: Add featured posts to a widget
 Author: Tom Singer
-Version: 0.1
+Version: 0.2
 Author URI: http://www.89pies.com
 License: MIT
 */
@@ -22,39 +22,104 @@ class featured_posts_widget extends WP_Widget {
 			'id_base' => 'featured_posts_widget');
 
 		$this->WP_Widget('featured_posts_widget', 'Featured Posts', $widget_ops, $control_ops );
+
+		add_image_size('featured-posts-thumbnail', 100, 150, true);
+
 	}
  
 	function form ($instance) {
+		if ( isset( $instance[ 'title' ] ) ) {
+			$title = $instance[ 'title' ];
+		}
+		else {
+			$title = __( 'New title', 'text_domain' );
+		}
+		$limit = $instance['limit'];
+		?>
+		<p>
+			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label> 
+			<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>" />
+		</p>
+		<p>
+			<label for="<?php echo $this->get_field_id( 'category' ); ?>"><?php _e( 'Category:' )?></label>
+			<select name="<?php echo $this->get_field_name( 'category' ); ?>" id="<?php echo $this->get_field_id( 'category' ); ?>"> 
+			<option value=""><?php echo esc_attr( __('All Categories') ); ?></option> 
+			<?php 
+			$cat_args = array(
+				'orderby' => 'term_group',
+				'hide_empty' => true
+			);
+			$categories = get_categories( $cat_args ); 
+			foreach( $categories as $category ) {
+			  	$option = '<option value="' . $category->cat_ID . '"' . ( $instance['category'] == $category->cat_ID ? ' selected="selected"' : '' ) . '>';
+				if( $category->parent )
+					$option .= ' - ';
+				$option .= $category->cat_name;
+				$option .= '</option>';
+				echo $option;
+			}
+			?>
+		</select>
+		<p>
+			<label for="<?php echo $this->get_field_id( 'limit' ); ?>"><?php _e( 'Limit:' ); ?></label> 
+			<input class="widefat" id="<?php echo $this->get_field_id( 'limit' ); ?>" name="<?php echo $this->get_field_name( 'limit' ); ?>" type="text" value="<?php echo esc_attr( $limit ); ?>" />
+		</p>
+		<?php
 	}
 
 	function update ($new_instance, $old_instance) {
+		$instance = array();
+		$instance['title'] = strip_tags( $new_instance['title'] );
+		$instance['category'] = $new_instance['category'];
+		$instance['limit'] = strip_tags( $new_instance['limit'] );
+		return $instance;
 	}
 
-	function widget ($args,$instance) {
+	function widget ( $args, $instance ) {
 		extract($args);
-
-		$title = "Featured Posts";
-
-		$post_args = array(
+//		extract( $instance );
+		if( ! $title )
+			$title = "Featured Posts";
+		
+		$query_args = array(
 			'meta_query' => array(
 				array(
 					'key' => 'featured_posts_widget_flag',
 					'value' => 'true',
 				)
-			)
+			),
+			'posts_per_page'=> -1,
+			'ignore_sticky_posts' => true
 		);
- 
-		$posts = get_posts($post_args);
-
-		if ( count($posts) > 0 ) {
+		if( $limit )
+			$query_args['posts_per_page'] = intval( $limit );
+		if( $category ) {
+			$query_args['tax_query'] = array(
+				array(
+					'taxonomy' => 'category',
+					'field' => 'id',
+					'terms' => intval( $category ),
+					'include_children' => false
+				)
+			);
+		}
+		
+		$query = new WP_Query( $query_args );
+		if( $query->post_count ) {
 			$out = '<ul>';
-				foreach($posts as $post) {
-					$out .= '<li><a href="'.get_permalink($post->ID).'">'.$post->post_title.'</a></li>';
+			while( $query->have_posts() ) {
+				$query->the_post();
+				$out .= '<li>';
+				if( has_post_thumbnail( get_the_ID() ) ) {
+					$out .= '<a href="' . get_permalink() . '">' . get_the_post_thumbnail( get_the_ID(), "featured-posts-thumbnail" ) . '</a>';
 				}
+				$out .= '<a href="' . get_permalink() . '">' . get_the_title() . '</a>';
+				$out .= '</li>';
+			}
 			$out .= '</ul>';
 
 			echo $before_widget;
-			echo $before_title.$title.$after_title;
+			echo $before_title . $title . $after_title;
 			echo $out;
 			echo $after_widget;
 		}
@@ -99,8 +164,16 @@ function featured_posts_widget_meta_handler($post_id) {
 	}
 }
 
+function featured_posts_widget_scripts() {
+	wp_register_style( 'featured-posts-widget-stylesheet', plugins_url('css/featured-posts-widget.css', __FILE__), array(), '1.0' );
+	wp_enqueue_style( 'featured-posts-widget-stylesheet' ); 
+}
+
+add_action( 'wp_enqueue_scripts', 'featured_posts_widget_scripts' );
+
 function featured_posts_widget_load_widgets() {
 	register_widget('featured_posts_widget');
 }
 
 add_action('widgets_init', 'featured_posts_widget_load_widgets');
+
