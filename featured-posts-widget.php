@@ -59,7 +59,8 @@ class featured_posts_widget extends WP_Widget {
 				echo $option;
 			}
 			?>
-		</select>
+			</select>
+		</p>
 		<p>
 			<label for="<?php echo $this->get_field_id( 'limit' ); ?>"><?php _e( 'Limit:' ); ?></label> 
 			<input class="widefat" id="<?php echo $this->get_field_id( 'limit' ); ?>" name="<?php echo $this->get_field_name( 'limit' ); ?>" type="text" value="<?php echo esc_attr( $limit ); ?>" />
