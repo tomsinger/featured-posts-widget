@@ -155,7 +155,13 @@ class featured_posts_widget extends WP_Widget {
 				if( ('above' == $show_thumbnail || 'left' == $show_thumbnail) && has_post_thumbnail( get_the_ID() ) ) {
 					$out .= '<a href="' . get_permalink() . '">' . get_the_post_thumbnail( get_the_ID(), "featured-posts-widget-thumbnail" ) . '</a>';
 				}
+				if ('above' == $show_thumbnail) {
+ 					$out .= '<br />';
+				}
 				$out .= '<a href="' . get_permalink() . '">' . get_the_title() . '</a>';
+				if ('below' == $show_thumbnail) {
+ 					$out .= '<br />';
+				}
 				if( ('below' == $show_thumbnail || 'right' == $show_thumbnail) && has_post_thumbnail( get_the_ID() ) ) {
 					$out .= '<a href="' . get_permalink() . '">' . get_the_post_thumbnail( get_the_ID(), "featured-posts-widget-thumbnail" ) . '</a>';
 				}
