@@ -23,7 +23,6 @@ class featured_posts_widget extends WP_Widget {
 
 		$this->WP_Widget('featured_posts_widget', 'Featured Posts', $widget_ops, $control_ops );
 
-		add_image_size('featured-posts-thumbnail', 100, 150, true);
 
 	}
  
@@ -35,10 +34,23 @@ class featured_posts_widget extends WP_Widget {
 			$title = __( 'New title', 'text_domain' );
 		}
 		$limit = $instance['limit'];
+		$thumbnail_width = $instance['thumbnail_width'];
+		$thumbnail_height = $instance['thumbnail_height'];
+		$thumbnail_options = array('None' => 'none', 'Left' => 'left', 'Right' => 'right', 'Above' => 'above', 'Below' => 'below'); 
 		?>
 		<p>
 			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label> 
 			<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>" />
+		</p>
+		<p>
+			<label for="<?php echo $this->get_field_id( 'show_thumbnail' ); ?>"><?php _e( 'Show Thumbnail:' )?></label>
+			<select name="<?php echo $this->get_field_name( 'show_thumbnail' ); ?>" id="<?php echo $this->get_field_id( 'show_thumbnail' ); ?>"> 
+			<?php foreach( $thumbnail_options as $description => $option ) { ?>
+		  		<option value="<?php echo $option ?>" <?php echo ( $instance['show_thumbnail'] == $option ? ' selected="selected"' : '' ) ?> >
+					<?php echo $description ?>
+				</option>
+			<?php } ?>
+			</select>
 		</p>
 		<p>
 			<label for="<?php echo $this->get_field_id( 'category' ); ?>"><?php _e( 'Category:' )?></label>
@@ -62,6 +74,14 @@ class featured_posts_widget extends WP_Widget {
 			</select>
 		</p>
 		<p>
+			<label for="<?php echo $this->get_field_id( 'thumbnail_width' ); ?>"><?php _e( 'Thumbnail Width:' ); ?></label> 
+			<input class="widefat" id="<?php echo $this->get_field_id( 'thumbnail_width' ); ?>" name="<?php echo $this->get_field_name( 'thumbnail_width' ); ?>" type="text" value="<?php echo esc_attr( $thumbnail_width ); ?>" />
+		</p>
+		<p>
+			<label for="<?php echo $this->get_field_id( 'thumbnail_height' ); ?>"><?php _e( 'Thumbnail Height:' ); ?></label> 
+			<input class="widefat" id="<?php echo $this->get_field_id( 'thumbnail_height' ); ?>" name="<?php echo $this->get_field_name( 'thumbnail_height' ); ?>" type="text" value="<?php echo esc_attr( $thumbnail_height ); ?>" />
+		</p>
+		<p>
 			<label for="<?php echo $this->get_field_id( 'limit' ); ?>"><?php _e( 'Limit:' ); ?></label> 
 			<input class="widefat" id="<?php echo $this->get_field_id( 'limit' ); ?>" name="<?php echo $this->get_field_name( 'limit' ); ?>" type="text" value="<?php echo esc_attr( $limit ); ?>" />
 		</p>
@@ -71,6 +91,9 @@ class featured_posts_widget extends WP_Widget {
 	function update ($new_instance, $old_instance) {
 		$instance = array();
 		$instance['title'] = strip_tags( $new_instance['title'] );
+		$instance['show_thumbnail'] = strip_tags( $new_instance['show_thumbnail'] );
+		$instance['thumbnail_width'] = strip_tags( $new_instance['thumbnail_width'] );
+		$instance['thumbnail_height'] = strip_tags( $new_instance['thumbnail_height'] );
 		$instance['category'] = $new_instance['category'];
 		$instance['limit'] = strip_tags( $new_instance['limit'] );
 		return $instance;
@@ -81,6 +104,20 @@ class featured_posts_widget extends WP_Widget {
 
 		if (count($instance) > 0) {
 			extract( $instance );
+		}
+
+		if (function_exists('add_image_size')) {
+			if (is_null($thumbnail_width)) {
+				$thumbnail_width = 0;
+			}
+			if (is_null($thumbnail_height)) {
+				$thumbnail_height = 0;
+			}
+			add_image_size('featured-posts-widget-thumbnail', $instance['thumbnail_width'], $instance['thumbnail_height'], true);
+		}
+
+		if (is_null($show_thumbnail)) {
+			$show_thumbnail = 'none';
 		}
 
 		if( ! $title )
@@ -111,14 +148,17 @@ class featured_posts_widget extends WP_Widget {
 		
 		$query = new WP_Query( $query_args );
 		if( $query->post_count ) {
-			$out = '<ul>';
+			$out = '<ul class="featured-posts-widget-thumbnail-' . $instance['show_thumbnail']  . '">';
 			while( $query->have_posts() ) {
 				$query->the_post();
 				$out .= '<li>';
-				if( has_post_thumbnail( get_the_ID() ) ) {
-					$out .= '<a href="' . get_permalink() . '">' . get_the_post_thumbnail( get_the_ID(), "featured-posts-thumbnail" ) . '</a>';
+				if( ('above' == $show_thumbnail || 'left' == $show_thumbnail) && has_post_thumbnail( get_the_ID() ) ) {
+					$out .= '<a href="' . get_permalink() . '">' . get_the_post_thumbnail( get_the_ID(), "featured-posts-widget-thumbnail" ) . '</a>';
 				}
 				$out .= '<a href="' . get_permalink() . '">' . get_the_title() . '</a>';
+				if( ('below' == $show_thumbnail || 'right' == $show_thumbnail) && has_post_thumbnail( get_the_ID() ) ) {
+					$out .= '<a href="' . get_permalink() . '">' . get_the_post_thumbnail( get_the_ID(), "featured-posts-widget-thumbnail" ) . '</a>';
+				}
 				$out .= '</li>';
 			}
 			$out .= '</ul>';
