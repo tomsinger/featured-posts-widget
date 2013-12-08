@@ -4,7 +4,7 @@ Plugin Name: Featured Posts Widget
 Plugin URI: http://www.89pies.com/featured-posts-widget
 Description: Add featured posts to a widget
 Author: Tom Singer
-Version: 0.2
+Version: 1.0
 Author URI: http://www.89pies.com
 License: MIT
 */
