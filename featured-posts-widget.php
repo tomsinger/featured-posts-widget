@@ -77,7 +77,11 @@ class featured_posts_widget extends WP_Widget {
 
 	function widget ( $args, $instance ) {
 		extract($args);
-//		extract( $instance );
+
+		if (count($instance) > 0) {
+			extract( $instance );
+		}
+
 		if( ! $title )
 			$title = "Featured Posts";
 		
